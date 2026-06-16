@@ -1,0 +1,127 @@
+### -----AUTHENTICATION ---------------------------------------
+
+# Login (correct credentials)
+POST http://localhost:3001/api/sessions
+content-type: application/json
+
+{
+  "username": "quevedo@gmail.com",
+  "password": "buscón1626"
+}
+
+###
+
+# Login (wrong password)
+POST http://localhost:3001/api/sessions
+content-type: application/json
+
+{
+  "username": "quevedo@gmail.com",
+  "password": "wrong_password"
+}
+
+### Other correct logins 
+
+POST http://localhost:3001/api/sessions
+content-type: application/json
+
+{
+  "username": "lope@gmail.com",
+  "password": "perro1618"
+}
+
+###
+
+POST http://localhost:3001/api/sessions
+content-type: application/json
+
+{
+  "username": "goya@gmail.com",
+  "password": "majadesnuda1800"
+}
+
+###
+
+POST http://localhost:3001/api/sessions
+content-type: application/json
+
+{
+  "username": "concha@gmail.com",
+  "password": "esfinge1914"
+}
+
+###
+
+# Check current session
+GET http://localhost:3001/api/sessions/current
+
+###
+
+# Logout
+DELETE http://localhost:3001/api/sessions/current
+
+###
+
+### -- NETWORK ----------------------------------------
+
+# Returns {lines, stations, segments}.
+GET http://localhost:3001/api/network
+
+###
+
+### -- GAMES ----------------------------------------
+
+# Create a new game (must be logged in first).
+POST http://localhost:3001/api/games
+
+###
+
+# Submit a VALID route
+POST http://localhost:3001/api/games/17/route
+content-type: application/json
+
+{
+  "segments": [
+    { "stationA": 13, "stationB": 2},
+    { "stationA": 2, "stationB": 12},
+    { "stationA": 12, "stationB": 11},
+    { "stationA": 11, "stationB": 10},
+    { "stationA": 10, "stationB": 9},
+    { "stationA": 9, "stationB": 8},
+    { "stationA": 8, "stationB": 7}
+  ]
+}
+
+###
+
+# Submit an INVALID route
+POST http://localhost:3001/api/games/17/route
+content-type: application/json
+
+{
+  "segments": [
+    { "stationA": 26, "stationB": 24 }
+  ]
+}
+
+###
+
+# Submit an VALID route to a different game 
+POST http://localhost:3001/api/games/10/route
+content-type: application/json
+
+{
+  "segments": [
+    { "stationA": 16,  "stationB":17  },
+    { "stationA": 17,  "stationB": 18 }
+  ]
+}
+
+###
+
+### -- RANKING ----------------------------------------
+
+# Auth required. 
+GET http://localhost:3001/api/ranking
+
+###

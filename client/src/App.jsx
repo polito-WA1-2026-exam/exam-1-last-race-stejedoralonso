@@ -1,122 +1,107 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import "bootstrap/dist/css/bootstrap.min.css"
+
+import { useState, useEffect, useContext } from 'react'
+import { Container, Button } from 'react-bootstrap'
+import { Outlet, Route, Routes, useNavigate, Link } from 'react-router'
+
+import Header from './components/Header.jsx'
+import Footer from './components/Footer.jsx'
+import { LoginForm, Logout } from "./components/LoginForm.jsx"
+
+import UserContext from './contexts/UserContext.js'
+
+import { checkSession } from './api/auth.js'
 
 function App() {
-  const [count, setCount] = useState(0)
+  
+
+  const navigate = useNavigate()
+
+  // Currently logged-in user
+  const [user, setUser] = useState({ id: undefined, email: undefined, name: undefined })
+
+  // Try to restore the login session
+  useEffect(() => {
+    checkSession().then(result => {
+      if (result) {
+        setUser({ id: result.id, email: result.email, name: result.name })
+      }
+    })
+  }, [])
+
+  // Login action handler
+  const handleLogin = (newUser) => {
+    setUser({ id: newUser.id, email: newUser.email, name: newUser.name })
+    navigate("/")
+  }
+
+  // Logout action handler
+  const handleLogout = () => {
+    setUser({ id: undefined, email: undefined, name: undefined })
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
+  <UserContext.Provider value={user}>
+        <Container>
+          <Routes>
+            <Route path="/" element={<MainLayout />}>
+              <Route index element={<LandingPage />} />
+              <Route path="login" element={<LoginForm handleLogin={handleLogin} />} />
+              <Route path="logout" element={<Logout handleLogout={handleLogout} />} />
+              <Route path="*" element={<h1>Page not found</h1>} />
+            </Route>
+          </Routes>
+        </Container>
+      </UserContext.Provider>
+    )
+  }
+  
+  // Layout: Header + page content + Footer (always rendered)
+  function MainLayout() {
+    return <>
+      <Header />
+      <Outlet />
+      <Footer />
     </>
-  )
+  }
+  
+  // Landing page for anonymous users
+  function LandingPage() {
+    const user = useContext(UserContext)
+    const navigate = useNavigate()
+  
+    return <>
+      <h2>How to play</h2>
+      <p>
+        You will be assigned a starting station and a destination station
+        in the Madrid Metro network. Your goal is to plan a valid route
+        between them and reach the destination with the highest possible score.
+      </p>
+      <h3>Game phases</h3>
+      <ol>
+        <li>
+          <strong>Setup:</strong> The full network map with all stations,
+          connections and metro lines will be displayed. When you are ready, start the game.
+        </li>
+        <li>
+          <strong>Planning:</strong> You have 90 seconds to build your route
+          by selecting segments from the list.
+        </li>
+        <li>
+          <strong>Execution:</strong> Your route is validated and, for each
+          segment, a random event occurs that adds or removes coins.
+        </li>
+        <li>
+          <strong>Result:</strong> Your final score is the number of coins
+          remaining.
+        </li>
+      </ol>
+      <p>Each game starts with <strong>20 coins</strong>.</p>
+      {user.id
+      ? <Button variant="success" onClick={() => navigate("/game/setup")}>Start playing!</Button>
+      : <Button variant="primary" onClick={() => navigate("/login")}>Log in to play!</Button>
+    }
+    </>
 }
-
+      
 export default App

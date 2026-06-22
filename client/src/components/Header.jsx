@@ -1,5 +1,5 @@
 import { useContext } from "react"
-import { Button, Container, Navbar } from "react-bootstrap"
+import { Button, Container, Navbar, Nav } from "react-bootstrap"
 import { Link, useNavigate } from "react-router"
 
 import UserContext from "../contexts/UserContext"
@@ -27,10 +27,11 @@ function LoginButton(props) {
 }
 
 function UserInfo(props) {
-  return <div>
-    <div>{props.name}</div>
-    <div><Link to='/logout'>Logout</Link></div>
-  </div>
+  return <Nav style={{ alignItems: "center" }}>
+    <div style={{ marginRight: "20px" }}>{props.name}</div>
+    <Nav.Link as={Link} to="/ranking">Ranking</Nav.Link>
+    <Nav.Link as={Link} to="/logout">Logout</Nav.Link>
+  </Nav>
 }
 
 export default Header

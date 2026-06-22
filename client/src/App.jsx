@@ -7,6 +7,7 @@ import { Outlet, Route, Routes, useNavigate, Link } from 'react-router'
 import Header from './components/Header.jsx'
 import Footer from './components/Footer.jsx'
 import { LoginForm, Logout } from "./components/LoginForm.jsx"
+import RankingPage from "./components/RankingPage.jsx"
 
 import UserContext from './contexts/UserContext.js'
 
@@ -48,6 +49,7 @@ function App() {
               <Route index element={<LandingPage />} />
               <Route path="login" element={<LoginForm handleLogin={handleLogin} />} />
               <Route path="logout" element={<Logout handleLogout={handleLogout} />} />
+              <Route path="ranking" element={<RankingPage />} />
               <Route path="*" element={<h1>Page not found</h1>} />
             </Route>
           </Routes>

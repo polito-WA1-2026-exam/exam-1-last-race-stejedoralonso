@@ -53,7 +53,9 @@
 - `RankingPage` (in `RankingPage.jsx`): Fetches and displays the ranking table. Highlights the current user's row via `UserContext`.
 
 ## Screenshot
+Ranking:
 ![Ranking](./screenshots/ranking.png)
+During the game:
 ![Planning](./screenshots/planning.png)
 
 ## Users Credentials

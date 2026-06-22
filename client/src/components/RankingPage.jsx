@@ -1,12 +1,17 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useContext } from "react"
 import { Table } from "react-bootstrap"
 
 import { getRanking } from "../api/api"
+
+import UserContext from "../contexts/UserContext"
 
 function RankingPage() {
 
     const [ranking, setRanking] = useState([])
     const [waiting, setWaiting] = useState(true)
+    
+    const user = useContext(UserContext)
+
 
     useEffect(() => {
         setWaiting(true)
@@ -34,7 +39,9 @@ function RankingPage() {
                 {ranking.map((r, index) =>
                     <tr key={index}>
                         <td>{index + 1}</td>
-                        <td>{r.name}</td>
+                        <td style={r.name === user.name ? { fontWeight: "bold" } : {}}>
+                            {r.name}
+                        </td>
                         <td>{r.bestScore}</td>
                     </tr>
                 )}

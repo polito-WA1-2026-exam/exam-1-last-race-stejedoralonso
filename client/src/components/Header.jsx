@@ -8,7 +8,7 @@ function Header() {
 
   const user = useContext(UserContext)
 
-  const destination = user.id ? "/game/setup" : "/"
+  const destination = user.id ? "/game" : "/"
 
   return (
     <Navbar style={{ backgroundColor: "#f5ebe0" }}>

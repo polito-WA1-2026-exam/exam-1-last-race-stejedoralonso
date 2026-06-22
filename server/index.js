@@ -42,7 +42,7 @@ passport.deserializeUser(function (user, cb) {
 
 // isLoggedIn middleware
 const isLoggedIn = (req, res, next) => {
-  if (req.isAuthenticated())
+  if (req.isAuthenticated()) // checks the req.user corresponds to an id of a user that has been authenticated and is still logged in
     return next();
   return res.status(401).json({ error: "Not authorized" });
 };
@@ -70,6 +70,7 @@ app.get("/api/sessions/current", (req, res) => {
 });
 
 // DELETE /api/sessions/current --> logout
+// It actually does not destroy the cookie, but it removes the authentication session from the server memory, so the cookie is no longer valid.
 app.delete("/api/sessions/current", (req, res) => {
   req.logout(() => {
     res.end();
@@ -110,18 +111,12 @@ app.post("/api/games", async (req, res) => {
 // POST /api/games/:id/route
 
 // Auth required. The client submits the planned route as an ordered list of segment objects: [{ stationA: id, stationB: id }, ...].
-// The server:
-//   1. Validates the game exists, belongs to the user and is not yet played.
-//   2. Loads the network to validate the route (correct start/end, each segment exists in the network and is not repeated).
-//   3. If valid: applies a random event per segment (execution phase) and saves the final score
-//   4. If invalid: saves score = 0 immediately.
-//
-// Returns { valid, steps, finalScore } where steps = [{ from, to, event, coinsAfter }].
+// The server validates the route and returns { valid, steps, finalScore } where steps = [{ from, to, event, coinsAfter }].
 app.post("/api/games/:id/route",
   [
     check("id").isInt({ min: 1 }), 
-    check("segments").isArray({ min: 1 }),
-    check("segments.*.stationA").isInt({ min: 1 }),
+    check("segments").isArray(),
+    check("segments.*.stationA").isInt({ min: 1 }),//
     check("segments.*.stationB").isInt({ min: 1 }),
   ],
   async (req, res) => {
@@ -133,7 +128,7 @@ app.post("/api/games/:id/route",
     const submittedSegments = req.body.segments; 
  
     try {
-      // 1. Load game, validates it exists, belongs to the user and is not yet played.
+      //Load game, validates it exists, belongs to the user and is not yet played.
       const game = await getGame(gameId);
       if (!game)
         return res.status(404).json({ error: "Game not found." });
@@ -141,8 +136,19 @@ app.post("/api/games/:id/route",
         return res.status(403).json({ error: "Forbidden." });
       if (game.score !== null)
         return res.status(409).json({ error: "Game already played." });
+
+      // Helper: mark the route as invalid, save score = 0, and respond
+      const failRoute = async (reason) => {
+        await saveGameResult(gameId, 0);
+        return res.json({ valid: false, reason, steps: [], finalScore: 0 });
+      };
+
+      //Empty route submitted
+      if (submittedSegments.length === 0) {
+        await failRoute("No segments submitted")
+      }
  
-      // 2. Load network for validation
+      // Load network for validation
       const { lines, stations, segments: networkSegments } = await getNetwork();
  
       // Set of valid segment keys for existence checking
@@ -157,18 +163,19 @@ app.post("/api/games/:id/route",
       for (const station of stations)
         stationNames[station.id] = station.name;
 
-      // Helper: mark the route as invalid, save score = 0, and respond
-      const failRoute = async (reason) => {
-        await saveGameResult(gameId, 0);
-        return res.json({ valid: false, reason, steps: [], finalScore: 0 });
-      };
  
       // Build the ordered station sequence from the segments taking into account that segments can be in either direction.
       const stationSequence = [];
       for (let i = 0; i < submittedSegments.length; i++) {
         const seg = submittedSegments[i];
         if (i === 0) {
-          stationSequence.push(seg.stationA, seg.stationB);
+          if (seg.stationA === game.startStation.id) {
+            stationSequence.push(seg.stationA, seg.stationB);
+          } else if (seg.stationB === game.startStation.id) {
+            stationSequence.push(seg.stationB, seg.stationA);
+          } else {
+            return await failRoute("First segment does not include the starting station.");
+          }
         } else {
           const prev = stationSequence[stationSequence.length - 1];
           if (seg.stationA === prev) {
@@ -198,7 +205,7 @@ app.post("/api/games/:id/route",
         usedSegments.add(key);
       }
 
-      // 3. Execute route: apply a random event per segment and save the final score. 
+      // Execute route: apply a random event per segment and save the final score. 
       const allEvents = await getAllEvents();
       let coins = 20;
       const steps = [];

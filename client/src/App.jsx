@@ -8,6 +8,9 @@ import Header from './components/Header.jsx'
 import Footer from './components/Footer.jsx'
 import { LoginForm, Logout } from "./components/LoginForm.jsx"
 import RankingPage from "./components/RankingPage.jsx"
+import SetupPage from "./components/SetupPage.jsx"
+import PlanningPage from "./components/PlanningPage.jsx"
+import ResultPage from "./components/ResultPage.jsx"
 
 import UserContext from './contexts/UserContext.js'
 
@@ -18,7 +21,7 @@ function App() {
 
   const navigate = useNavigate()
 
-  // Currently logged-in user
+  // It starts with an anonymous user
   const [user, setUser] = useState({ id: undefined, email: undefined, name: undefined })
 
   // Try to restore the login session
@@ -50,6 +53,9 @@ function App() {
               <Route path="login" element={<LoginForm handleLogin={handleLogin} />} />
               <Route path="logout" element={<Logout handleLogout={handleLogout} />} />
               <Route path="ranking" element={<RankingPage />} />
+              <Route path="game" element={<SetupPage />} />
+              <Route path="game/planning" element={<PlanningPage />} />
+              <Route path="game/result" element={<ResultPage />} />
               <Route path="*" element={<h1>Page not found</h1>} />
             </Route>
           </Routes>
@@ -60,11 +66,13 @@ function App() {
   
   // Layout: Header + page content + Footer (always rendered)
   function MainLayout() {
-    return <>
+    return <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       <Header />
-      <Outlet />
+      <div> 
+        <Outlet />
+      </div>
       <Footer />
-    </>
+    </div>
   }
   
   // Landing page for anonymous users
@@ -100,7 +108,7 @@ function App() {
       </ol>
       <p>Each game starts with <strong>20 coins</strong>.</p>
       {user.id
-      ? <Button variant="success" onClick={() => navigate("/game/setup")}>Start playing!</Button>
+      ? <Button variant="success" onClick={() => navigate("/game")}>Start playing!</Button>
       : <Button variant="primary" onClick={() => navigate("/login")}>Log in to play!</Button>
     }
     </>
